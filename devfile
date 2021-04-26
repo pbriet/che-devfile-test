@@ -23,13 +23,13 @@ components:
       - name: nodejs
         port: 8080
         attributes:
-          discoverable: true
-          public: true
+          discoverable: "true"
+          public: "true"
       - name: angular
         port: 8081
         attributes:
-          discoverable: true
-          public: false
+          discoverable: "true"
+          public: "false"
     memoryLimit: 2048Mi
     env:
       - name: NODE_ENV
