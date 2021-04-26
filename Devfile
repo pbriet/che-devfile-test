@@ -1,0 +1,114 @@
+apiVersion: 1.0.0
+metadata:
+  name: my-app
+projects:
+  - name: my-app
+    source:
+      location: 'git@gitlab.com:apalia/devops-roadmap/application.git'
+      type: git
+      branch: pascal
+components:
+  - id: che-incubator/typescript/latest
+    memoryLimit: 512Mi
+    type: chePlugin
+
+  - id: ms-vscode/node-debug2/latest
+    type: chePlugin
+
+  - type: dockerimage
+    alias: nodejs
+    image: 'quay.io/eclipse/che-nodejs10-community:7.29.1'
+    mountSources: true
+    endpoints:
+      - name: nodejs
+        port: 8080
+        attributes:
+          discoverable: true
+          public: true
+      - name: angular
+        port: 8081
+        attributes:
+          discoverable: true
+          public: false
+    memoryLimit: 2048Mi
+    env:
+      - name: NODE_ENV
+        value: production
+        
+  - type: dockerimage
+    image: 'quay.io/bitnami/mongodb:4.2.13'
+    endpoints:
+      - name: mongodb
+        port: 27017
+        attributes:
+          discoverable: 'true'
+          public: 'false'
+    memoryLimit: 512Mi
+    volumes:
+      - name: mongo-storage
+        containerPath: /var/lib/mongodb/data
+    alias: mongo
+    env:
+      - name: MONGODB_USERNAME
+        value: user
+      - name: MONGODB_PASSWORD
+        value: password
+      - name: MONGODB_DATABASE
+        value: guestbook
+      - name: MONGODB_ROOT_PASSWORD
+        value: password
+        
+
+commands:
+  - name: 1. Update/install NodeJS dependencies
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/my-app/nodejs'
+        type: exec
+        command: npm install
+        component: nodejs
+
+  - name: 2. Run NodeJS app
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/my-app/nodejs'
+        type: exec
+        command: node --inspect=9229 app.js
+        component: nodejs
+
+  - name: 3. Run NodeJS tests
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/my-app/nodejs'
+        type: exec
+        command: npm run test
+        component: nodejs
+
+  - name: Debug remote node application
+    actions:
+      - type: vscode-launch
+        referenceContent: |
+         {
+         "version": "0.2.0",
+         "configurations": [
+           {
+             "type": "node",
+             "name": "Debug (Attach) - Remote",
+             "request": "attach",
+             "port": 9229
+           }]
+         }
+
+  - name: 4. Install Angular dependencies
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/my-app/angular'
+        type: exec
+        command: yarn install --production=false
+        component: nodejs
+
+
+  - name: 5. Run Angular app
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/my-app/angular'
+        type: exec
+        command: yarn run start --host 0.0.0.0 --disable-host-check true --port 8081 --live-reload --hmr 
+        component: nodejs
+
+
