@@ -74,6 +74,14 @@ commands:
         command: node --inspect=9229 app.js
         component: nodejs
 
+  - name: 2bis. Run NodeJS app
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/my-app/nodejs'
+        type: exec
+        command: node --inspect=9255 app.js
+        component: nodejs
+
+
   - name: 3. Run NodeJS tests
     actions:
       - workdir: '${CHE_PROJECTS_ROOT}/my-app/nodejs'
